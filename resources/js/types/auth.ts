@@ -1,7 +1,11 @@
+export type UserRole = 'donor' | 'volunteer';
+
 export type User = {
     id: number;
     name: string;
     email: string;
+    role: UserRole;
+    address?: string | null;
     avatar?: string;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
@@ -13,6 +17,18 @@ export type User = {
 export type Auth = {
     user: User;
 };
+
+// ── Sanctum API response shapes ───────────────────────────────────────────
+
+/** Shape returned by POST /api/login and POST /api/register */
+export type AuthApiResponse = {
+    user: Pick<User, 'id' | 'name' | 'email' | 'role' | 'address'>;
+    token: string;
+};
+
+/** Minimal stored user kept in localStorage */
+export type StoredUser = Pick<User, 'id' | 'name' | 'email' | 'role'>;
+
 
 /* @chisel-passkeys */
 export type Passkey = {
