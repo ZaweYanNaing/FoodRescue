@@ -7,7 +7,6 @@ use App\Models\Donation;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 class DonationController extends Controller
 {
@@ -15,14 +14,19 @@ class DonationController extends Controller
      * index(): Return all donations where status is 'available'.
      * Public – no auth required.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $donations = Donation::with(['donor:id,name,address'])
-            ->where('status', 'available')
-            ->latest()
-            ->get();
+        $query = Donation::with(['donor:id,name,address'])->latest();
 
-        return response()->json($donations);
+        if ($request->has('status')) {
+            $query->where('status', $request->query('status'));
+        }
+
+        if ($request->has('donor_id')) {
+            $query->where('donor_id', $request->query('donor_id'));
+        }
+
+        return response()->json($query->get());
     }
 
     /**
@@ -31,8 +35,8 @@ class DonationController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'title'             => ['required', 'string', 'max:255'],
-            'description'       => ['nullable', 'string'],
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
             'pickup_time_limit' => ['required', 'date', 'after:now'],
         ]);
 
@@ -42,7 +46,7 @@ class DonationController extends Controller
         $donation = Donation::create([
             ...$validated,
             'donor_id' => $user->id,
-            'status'   => 'available',
+            'status' => 'available',
         ]);
 
         return response()->json($donation->load('donor:id,name,address'), 201);
@@ -71,7 +75,7 @@ class DonationController extends Controller
         }
 
         $validated = $request->validate([
-            'title'       => ['sometimes', 'required', 'string', 'max:255'],
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
         ]);
 
@@ -106,7 +110,7 @@ class DonationController extends Controller
         // Guard valid transitions
         $allowedTransitions = [
             'available' => 'claimed',
-            'claimed'   => 'picked_up',
+            'claimed' => 'picked_up',
             'picked_up' => 'delivered',
         ];
 
@@ -141,14 +145,14 @@ class DonationController extends Controller
             return response()->json(['message' => 'Forbidden. Only the donor can delete this donation.'], 403);
         }
 
-        if (! in_array($donation->status, ['available', 'canceled'])) {
+        if (! in_array($donation->status, ['available'])) {
             return response()->json([
-                'message' => 'Cannot delete a donation that has already been claimed or is in transit.',
+                'message' => 'Cannot cancel a donation that has already been claimed or is in transit.',
             ], 422);
         }
 
-        $donation->delete();
+        $donation->update(['status' => 'canceled']);
 
-        return response()->json(['message' => 'Donation deleted successfully.'], 200);
+        return response()->json(['message' => 'Donation canceled successfully.', 'donation' => $donation->fresh()], 200);
     }
 }

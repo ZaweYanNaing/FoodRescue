@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DonationController;
+use App\Http\Controllers\Api\MessageController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -42,4 +43,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Donations – status transitions (volunteer actions)
     Route::patch('/donations/{donation}/status', [DonationController::class, 'updateStatus'])->name('api.donations.updateStatus');
+
+    // Chat (donor and volunteer communication)
+    Route::get('/donations/{donation}/messages', [MessageController::class, 'index'])->name('api.messages.index');
+    Route::post('/donations/{donation}/messages', [MessageController::class, 'store'])->name('api.messages.store');
 });
