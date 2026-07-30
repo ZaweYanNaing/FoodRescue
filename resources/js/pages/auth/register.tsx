@@ -1,4 +1,3 @@
-import { router } from '@inertiajs/react';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
 import { useState } from 'react';
@@ -54,9 +53,9 @@ export default function Register({ passwordRules }: Props) {
             });
 
             if (data.user.role === 'donor') {
-                router.visit('/donor/dashboard');
+                window.location.href = '/donor/dashboard';
             } else {
-                router.visit('/volunteer/feed');
+                window.location.href = '/volunteer/feed';
             }
         } catch (err) {
             if (axios.isAxiosError(err) && err.response?.status === 422) {

@@ -1,4 +1,3 @@
-import { router } from '@inertiajs/react';
 import { Form, Head } from '@inertiajs/react';
 import axios from 'axios';
 import { useState } from 'react';
@@ -50,11 +49,11 @@ export default function Login({ status, canResetPassword }: Props) {
                 role: data.user.role,
             });
 
-            // Redirect based on role using Inertia's router
+            // Redirect based on role via full page load (avoids Inertia session check)
             if (data.user.role === 'donor') {
-                router.visit('/donor/dashboard');
+                window.location.href = '/donor/dashboard';
             } else {
-                router.visit('/volunteer/feed');
+                window.location.href = '/volunteer/feed';
             }
         } catch (err) {
             if (axios.isAxiosError(err) && err.response?.status === 422) {
